@@ -1,0 +1,26 @@
+pipeline {
+    agent any
+
+    environment {
+        AWS_REGION = "ap-southeast-2"                 // Change to your region
+        BUCKET_NAME = "technova-jenkins-bucket-testing-by-jenkins-script"   // Change to your desired bucket name
+    }
+
+    stages {
+        stage('Create S3 Bucket') {
+            steps {
+                script {
+                    // Try creating the bucket; if it exists, skip
+                    sh """
+                        if aws s3 ls "s3://$BUCKET_NAME" 2>&1 | grep -q 'NoSuchBucket'; then
+                            echo "Bucket does not exist. Creating..."
+                            aws s3api create-bucket --bucket $BUCKET_NAME --region $AWS_REGION --create-bucket-configuration LocationConstraint=$AWS_REGION
+                        else
+                            echo "Bucket $BUCKET_NAME already exists. Skipping creation."
+                        fi
+                    """
+                }
+            }
+        }
+    }
+}
